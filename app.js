@@ -9,8 +9,7 @@ const cors = require('cors');
 const { errorHandler } = require('./middlewares/error-handler');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
 
-const { PORT = 4000 } = process.env;
-
+const { PORT, MONGO_URL } = require('./utils/constants/config');
 const usersRoutes = require('./routes/users');
 const moviesRoutes = require('./routes/movies');
 const { validateLogin, validateCreateUser } = require('./middlewares/validate');
@@ -36,7 +35,8 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser());
-mongoose.connect('mongodb://127.0.0.1:27017/bitfilmsdb', {
+
+mongoose.connect(MONGO_URL, {
   useNewUrlParser: true,
 });
 app.get('/crash-test', () => {
@@ -51,10 +51,11 @@ app.delete('/signout', signOut);
 app.use(auth);
 app.use('/users', usersRoutes);
 app.use('/movies', moviesRoutes);
-app.use(errorLogger);
 app.use('*', () => {
   throw new NotFoundError('Запрашиваемый ресурс не найден');
 });
+app.use(errorLogger);
+
 app.use(errors());
 app.use(errorHandler);
 
